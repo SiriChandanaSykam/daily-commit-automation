@@ -1,0 +1,44 @@
+name: DevSync Daily Commit
+
+on:
+  schedule:
+    # Runs at 14:30 UTC daily (8:00 PM IST)
+    - cron: "30 14 * * *"
+  workflow_dispatch: # Allows manual testing
+
+jobs:
+  daily-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Git for 24f3001658@ds.study.iitm.ac.in
+        run: |
+          git config user.email "24f3001658@ds.study.iitm.ac.in"
+          git config user.name "DevSync Automation"
+
+      - name: Create daily update
+        run: |
+          # Create logs directory if it doesn't exist
+          mkdir -p logs
+          
+          # Get current date and time
+          DATE=$(date -u +"%Y-%m-%d")
+          DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          
+          # Create or update daily log file
+          echo "Daily automation run: $DATETIME" >> daily-log.txt
+          
+          # Create timestamped log file
+          echo "DevSync Daily Update" > logs/update-$DATE.txt
+          echo "Timestamp: $DATETIME" >> logs/update-$DATE.txt
+          echo "Workflow: Daily Commit Automation" >> logs/update-$DATE.txt
+
+      - name: Commit and push changes
+        run: |
+          git add daily-log.txt logs/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Automated daily commit - $(date -u +"%Y-%m-%d %H:%M:%S")" && git push)
